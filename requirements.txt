@@ -2,6 +2,7 @@ decord==0.6.0
 einops==0.8.1
 huggingface_hub==0.29.1
 matplotlib==3.7.0
+seaborn==0.12.2
 numpy==1.24.4
 opencv_python==4.7.0.72
 pyarrow==11.0.0
@@ -17,6 +18,7 @@ transformers==4.49.0
 accelerate>=0.34.0
 wandb
 gradio
+flask
 setuptools
 wheel
 ninja
