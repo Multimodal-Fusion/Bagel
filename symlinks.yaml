@@ -1,0 +1,20 @@
+# Symlink configuration for Bagel
+# Each entry creates a symlink from the local path to ~/ssd/project/vlm/Bagel/target
+# Format: local_path: target_name
+# Uncomment the folders you want to symlink
+
+symlinks:
+  - logs: logs
+  - wandb: wandb
+  - datasets: datasets
+  - models: models
+  # - data: data
+  # - checkpoints: checkpoints
+  # - ckpts: ckpts
+  # - outputs: outputs
+  # - exps: exps
+  # - wandb: wandb
+  # - logs: logs
+  # - cache: cache
+  # - pretrained: pretrained
+  # - models: models
