@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 export MAIN_DIR="/home/colligo/project/vlm/FusionBench/src/train/bagel"
+export ORIGINAL_DIR="/home/colligo/project/vlm/Bagel"
 
 conda activate bagel
 ########################################################
@@ -9,8 +10,8 @@ conda activate bagel
 ########################################################
 # export DATASET_CONFIG="./data/configs/example.yaml"
 export DATASET_CONFIG="$MAIN_DIR/data/configs/vlm-ft-v1.yaml"
-export MODEL_PATH="$MAIN_DIR/models/BAGEL-7B-MoT"
-
+export MODEL_PATH="$ORIGINAL_DIR/models/BAGEL-7B-MoT"
+export EXPERIMENT_NAME="bagel-vlm-visualjigsaw-position-1p6M-sft-maxnumtokens10240-v2"
 
 ########################################################
 # set the variables
@@ -63,11 +64,13 @@ torchrun \
   --log_every 1 \
   --lr 2e-5 \
   --num_worker 1 \
-  --expected_num_tokens 20480 \
-  --max_num_tokens 23760 \
-  --max_num_tokens_per_sample 20480 \
+  --expected_num_tokens 10240 \
+  --max_num_tokens 11520 \
+  --max_num_tokens_per_sample 10240 \
   --wandb_project "bagel" \
-  --wandb_name "bagel-vlm-visualjigsaw-position-1p6M-sft-maxnumtokens20480-v1" \
+  --wandb_name $EXPERIMENT_NAME \
+  --checkpoint_dir "results/$EXPERIMENT_NAME/checkpoints" \
+  --results_dir "results/$EXPERIMENT_NAME" \
   --wandb_runid "0"
 
 # torchrun \
