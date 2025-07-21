@@ -4,6 +4,7 @@
 # Uncomment the folders you want to symlink
 
 symlinks:
+  - results: results
   - pretrained: pretrained
   - logs: logs
   - wandb: wandb
