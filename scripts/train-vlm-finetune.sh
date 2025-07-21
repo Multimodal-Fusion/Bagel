@@ -1,13 +1,16 @@
 # Copyright 2025 Bytedance Ltd. and/or its affiliates.
 # SPDX-License-Identifier: Apache-2.0
 
+export MAIN_DIR="/home/colligo/project/vlm/FusionBench/src/train/bagel"
 
+conda activate bagel
 ########################################################
 # experiment config
 ########################################################
 # export DATASET_CONFIG="./data/configs/example.yaml"
-export DATASET_CONFIG="./data/configs/vlm-ft-v1.yaml"
-export MODEL_PATH="/home/colligo/project/vlm/Bagel/models/BAGEL-7B-MoT"
+export DATASET_CONFIG="$MAIN_DIR/data/configs/vlm-ft-v1.yaml"
+export MODEL_PATH="$MAIN_DIR/models/BAGEL-7B-MoT"
+
 
 ########################################################
 # set the variables
@@ -21,6 +24,9 @@ export model_path=$MODEL_PATH
 # export WANDB_ENTITY='transfusion'
 export WANDB_ENTITY="genai-x"
 # export WANDB_API_KEY='local-c6ef2052c6e94ee78087778830163f42cbaef274'
+
+# add /home/colligo/project/vlm/FusionBench/src/train/bagel to the python path
+export PYTHONPATH="$MAIN_DIR:$PYTHONPATH"
 
 ########################################################
 # print the variables
@@ -62,4 +68,4 @@ torchrun \
   --max_num_tokens_per_sample 10240 \
   --wandb_project "bagel" \
   --wandb_name "bagel-vlm-test-sft-v1" \
-  --wandb_runid "0" \
+  --wandb_runid "1" \
