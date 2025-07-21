@@ -3,6 +3,7 @@
 
 import logging
 import os
+import shutil
 
 
 def create_logger(logging_dir, rank, filename="log"):
@@ -33,3 +34,29 @@ def get_latest_ckpt(checkpoint_dir):
     step_dirs = sorted(step_dirs, key=lambda x: int(x))
     latest_step_dir = os.path.join(checkpoint_dir, step_dirs[-1])
     return latest_step_dir
+
+
+def copy_missing_configs(checkpoint_path, base_model_path="models/BAGEL-7B-MoT"):
+    """
+    Copy missing config files from base model directory to checkpoint directory.
+    This is useful for evaluation scripts that need config files not saved in checkpoints.
+    
+    Args:
+        checkpoint_path: Path to checkpoint directory
+        base_model_path: Path to base model directory with config files
+    """
+    config_files = ["llm_config.json", "vit_config.json"]
+    
+    for config_file in config_files:
+        checkpoint_config_path = os.path.join(checkpoint_path, config_file)
+        base_config_path = os.path.join(base_model_path, config_file)
+        
+        # If config doesn't exist in checkpoint but exists in base model
+        if not os.path.exists(checkpoint_config_path) and os.path.exists(base_config_path):
+            try:
+                shutil.copy2(base_config_path, checkpoint_config_path)
+                print(f"✓ Copied {config_file} from {base_model_path} to {checkpoint_path}")
+            except Exception as e:
+                print(f"⚠ Failed to copy {config_file}: {e}")
+        elif not os.path.exists(checkpoint_config_path):
+            print(f"⚠ Config file {config_file} not found in {checkpoint_path} or {base_model_path}")

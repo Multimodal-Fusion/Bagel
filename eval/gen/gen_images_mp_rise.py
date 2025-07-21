@@ -9,6 +9,7 @@ from safetensors.torch import load_file
 import torch
 import torch.distributed as dist
 from data.data_utils import add_special_tokens, pil_img2rgb
+from train.train_utils import copy_missing_configs
 from data.transforms import ImageTransform
 from modeling.bagel import (
     BagelConfig, Bagel, Qwen2Config, Qwen2ForCausalLM, SiglipVisionConfig, SiglipVisionModel
@@ -416,6 +417,9 @@ if __name__ == "__main__":
     os.makedirs(output_dir, exist_ok=True)
     if rank == 0:
         print(f"Output images are saved in {output_dir}")
+
+    # Copy missing config files from base model if they don't exist in checkpoint
+    copy_missing_configs(args.model_path)
 
     llm_config = Qwen2Config.from_json_file(os.path.join(args.model_path, "llm_config.json"))
     llm_config.qk_norm = True

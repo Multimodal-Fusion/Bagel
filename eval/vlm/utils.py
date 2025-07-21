@@ -13,6 +13,7 @@ import os
 import yaml
 
 from data.data_utils import add_special_tokens, pil_img2rgb
+from train.train_utils import copy_missing_configs
 from modeling.bagel import (
     BagelConfig, 
     Bagel, 
@@ -27,7 +28,11 @@ from safetensors.torch import load_file
 from data.transforms import ImageTransform
 
 
+
 def load_model_and_tokenizer(args):
+    # Copy missing config files from base model if they don't exist in checkpoint
+    copy_missing_configs(args.model_path)
+    
     llm_config = Qwen2Config.from_json_file(os.path.join(args.model_path, "llm_config.json"))
     llm_config.qk_norm = True
     llm_config.tie_word_embeddings = False

@@ -9,6 +9,7 @@ from safetensors.torch import load_file
 import torch
 import torch.distributed as dist
 from data.data_utils import add_special_tokens, pil_img2rgb
+from train.train_utils import copy_missing_configs
 from data.transforms import ImageTransform
 from modeling.bagel import (
     BagelConfig, Bagel, Qwen2Config, Qwen2ForCausalLM, SiglipVisionConfig, SiglipVisionModel
