@@ -13,6 +13,8 @@ DATASET_REGISTRY = {
 }
 
 DATA_PATH = "/home/colligo/project/vlm/Bagel/datasets/"
+DATA_PATH2 = "/home/colligo/project/vlm/FusionBench"
+
 DATASET_INFO = {
     't2i_pretrain': {
         't2i': {
@@ -35,5 +37,10 @@ DATASET_INFO = {
 			'jsonl_path': f'{DATA_PATH}/bagel_example/vlm/llava_ov_si.jsonl',
 			'num_total_samples': 1000
 		},
+        'visual_jigsaw_position': {
+            'data_dir': f'',
+            'jsonl_path': f'{DATA_PATH2}/data/train/visual_jigsaw_position/problems/visual_jigsaw_position_train_vlm.jsonl',
+            'num_total_samples': 1000
+        },
     },
 }
