@@ -360,8 +360,8 @@ def main():
             mode="offline" if training_args.wandb_offline else "online"
         )
         wandb.config.update(training_args, allow_val_change=True)
-        wandb.config.update(model_args)
-        wandb.config.update(data_args)
+        wandb.config.update(model_args, allow_val_change=True)
+        wandb.config.update(data_args, allow_val_change=True)
     else:
         logger = create_logger(None, dist.get_rank())
     dist.barrier()
