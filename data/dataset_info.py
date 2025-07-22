@@ -40,7 +40,12 @@ DATASET_INFO = {
         'visual_jigsaw_position': {
             'data_dir': f'',
             'jsonl_path': f'{DATA_PATH2}/data/train/visual_jigsaw_position/problems/visual_jigsaw_position_train_vlm.jsonl',
-            'num_total_samples': 1000
+            'num_total_samples': 160000
+        },
+        'visual_jigsaw_mapping': {
+            'data_dir': f'',
+            'jsonl_path': f'{DATA_PATH2}/src/fusionbench/image/visual_jigsaw_position_train/problems/visual_jigsaw_mapping_train_bagel_vlm.jsonl',
+            'num_total_samples': 160000
         },
     },
 }
