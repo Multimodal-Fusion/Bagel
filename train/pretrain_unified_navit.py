@@ -359,7 +359,7 @@ def main():
             resume=training_args.wandb_resume,
             mode="offline" if training_args.wandb_offline else "online"
         )
-        wandb.config.update(training_args)
+        wandb.config.update(training_args, allow_val_change=True)
         wandb.config.update(model_args)
         wandb.config.update(data_args)
     else:
