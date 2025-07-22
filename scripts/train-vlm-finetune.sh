@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 export MAIN_DIR="/home/colligo/project/vlm/FusionBench/src/train/bagel"
-export ORIGINAL_DIR="/home/colligo/project/vlm/Bagel"
+# export ORIGINAL_DIR="/home/colligo/project/vlm/Bagel"
 
 conda activate bagel
 ########################################################
@@ -10,7 +10,7 @@ conda activate bagel
 ########################################################
 # export DATASET_CONFIG="./data/configs/example.yaml"
 export DATASET_CONFIG="$MAIN_DIR/data/configs/vlm-ft-v1.yaml"
-export MODEL_PATH="$ORIGINAL_DIR/models/BAGEL-7B-MoT"
+export MODEL_PATH="$MAIN_DIR/models/BAGEL-7B-MoT"
 export EXPERIMENT_NAME="bagel-vlm-visualjigsaw-position-1p6M-sft-maxnumtokens10240-v2"
 
 ########################################################
