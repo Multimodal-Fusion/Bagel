@@ -58,7 +58,7 @@ torchrun \
   --resume-from $model_path \
   --finetune_from_hf True \
   --auto_resume True \
-  --resume-model-only True \
+  --resume-model-only False \
   --finetune-from-ema True \
   --visual_gen False \
   --log_every 1 \
