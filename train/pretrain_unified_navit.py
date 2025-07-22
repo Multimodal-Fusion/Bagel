@@ -203,7 +203,7 @@ class TrainingArguments:
     )
     resume_from: str = field(
         default=None,
-        metadata={"help": "Explicit checkpoint path to resume from (overrides auto_resume)." }
+        metadata={"help": "Explicit checkpoint path to resume from (does not override auto_resume)." }
     )
     resume_model_only: bool = field(
         default=False,
@@ -372,6 +372,7 @@ def main():
     # prepare auto resume logic:
     if training_args.auto_resume:
         resume_from = get_latest_ckpt(training_args.checkpoint_dir)
+        print(f"WARNING: resuming from: {resume_from}")
         if resume_from is None:
             resume_from = training_args.resume_from
             resume_model_only = training_args.resume_model_only
