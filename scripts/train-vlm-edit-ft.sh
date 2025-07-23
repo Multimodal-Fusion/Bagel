@@ -64,7 +64,7 @@ torchrun \
   --resume-model-only True \
   --finetune-from-ema True \
   --visual_gen True \
-  --visual_und True \
+  --visual_und False \
   --log_every 1 \
   --lr 2e-5 \
   --num_worker 1 \

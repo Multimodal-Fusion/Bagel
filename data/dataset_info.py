@@ -35,8 +35,8 @@ DATASET_INFO = {
 		},
         'visual_jigsaw_generation': {
             'data_dir': f'{DATA_PATH2}/data/train/visual_jigsaw_generation',
-            'num_files': 11,
-            'num_total_samples': 10000,
+            'num_files': 160,
+            'num_total_samples': 160000,
             'parquet_info_path': f'{DATA_PATH2}/data/train/visual_jigsaw_generation/parquet_info/visual_jigsaw_generation.json'
         },
     },
