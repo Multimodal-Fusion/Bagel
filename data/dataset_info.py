@@ -15,6 +15,9 @@ DATASET_REGISTRY = {
 DATA_PATH = "/home/colligo/project/vlm/Bagel/datasets/"
 DATA_PATH2 = "/home/colligo/project/vlm/FusionBench"
 
+DATA_PATH = "/home/colligo/project/vlm/FusionBench/src/train/bagel/datasets"
+
+
 DATASET_INFO = {
     't2i_pretrain': {
         't2i': {
@@ -28,8 +31,14 @@ DATASET_INFO = {
             'data_dir': f'{DATA_PATH}/bagel_example/editing/seedxedit_multi',
             'num_files': 10,
             'num_total_samples': 1000,
-            "parquet_info_path": f'{DATA_PATH}/bagel_example/editing/parquet_info/seedxedit_multi_nas.json', # information of the parquet files
+            "parquet_info_path": f'{DATA_PATH}/bagel_example/editing/parquet_info/seedxedit_multi.json', # information of the parquet files
 		},
+        'visual_jigsaw_generation': {
+            'data_dir': f'{DATA_PATH2}/data/train/visual_jigsaw_generation',
+            'num_files': 11,
+            'num_total_samples': 10000,
+            'parquet_info_path': f'{DATA_PATH2}/data/train/visual_jigsaw_generation/parquet_info/visual_jigsaw_generation.json'
+        },
     },
     'vlm_sft': {
         'llava_ov': {
