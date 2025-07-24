@@ -84,6 +84,6 @@ torchrun \
   --wandb_runid "0" \
   --text_cond_dropout_prob 0.0 \
   --vit_cond_dropout_prob 0.0 \
-  --save_every 10
+  --save_every 1000
 
 echo "🎉 Training completed!"
