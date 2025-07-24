@@ -504,6 +504,7 @@ def main():
         num_replicate=training_args.num_replicate,
         num_shard=training_args.num_shard,
     )
+    # create ema model
     ema_model = deepcopy(model)
     model, ema_model = FSDPCheckpoint.try_load_ckpt(
         resume_from, logger, model, ema_model, resume_from_ema=finetune_from_ema
