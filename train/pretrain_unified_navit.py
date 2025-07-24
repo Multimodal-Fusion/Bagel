@@ -224,7 +224,7 @@ class TrainingArguments:
         metadata={"help": "Print / log every N training steps."}
     )
     save_every: int = field(
-        default=50,
+        default=500,
         metadata={"help": "Save a checkpoint every N training steps."}
     )
     total_steps: int = field(

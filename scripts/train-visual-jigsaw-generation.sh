@@ -83,6 +83,7 @@ torchrun \
   --results_dir "results/$EXPERIMENT_NAME" \
   --wandb_runid "0" \
   --text_cond_dropout_prob 0.0 \
-  --vit_cond_dropout_prob 0.0
+  --vit_cond_dropout_prob 0.0 \
+  --save_every 500
 
 echo "🎉 Training completed!"
