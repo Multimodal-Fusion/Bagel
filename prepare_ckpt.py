@@ -14,14 +14,14 @@ from safetensors.torch import load_file, save_file
 def prepare_checkpoint(checkpoint_path, base_model_path, output_suffix="_hf", convert_to_bf16=True, merge_missing_weights=True):
     """
     Copy base model files to a new directory and replace with checkpoint weights.
-    Optionally merge missing generation weights from original BAGEL model.
+    Optionally merge missing weights from original BAGEL model.
     
     Args:
         checkpoint_path: Path to the checkpoint directory (e.g., results/.../0000500/)
         base_model_path: Path to the base Bagel model directory
         output_suffix: Suffix to add to output directory name
         convert_to_bf16: Whether to convert checkpoint weights to bfloat16
-        merge_missing_weights: Whether to merge missing generation weights from original BAGEL
+        merge_missing_weights: Whether to merge missing weights from original BAGEL
     """
     checkpoint_path = Path(checkpoint_path)
     base_model_path = Path(base_model_path)
@@ -71,19 +71,15 @@ def prepare_checkpoint(checkpoint_path, base_model_path, output_suffix="_hf", co
                 original_weights = load_file(str(original_ema))
                 print(f"  Loaded {len(original_weights):,} weight tensors from original BAGEL")
                 
-                # Find missing weights
+                # Find ALL missing weights (not just generation-specific)
                 missing_weights = {}
-                generation_prefixes = ['time_embedder.', 'vae2llm.', 'llm2vae.', 'latent_pos_embed.']
                 
                 for weight_name in original_weights:
                     if weight_name not in checkpoint_weights:
-                        # Check if it's a generation weight
-                        is_generation = any(weight_name.startswith(prefix) for prefix in generation_prefixes)
-                        if is_generation:
-                            missing_weights[weight_name] = original_weights[weight_name]
+                        missing_weights[weight_name] = original_weights[weight_name]
                 
                 if missing_weights:
-                    print(f"🔧 Merging {len(missing_weights)} missing generation weights:")
+                    print(f"🔧 Merging {len(missing_weights)} missing weights from original BAGEL:")
                     
                     # Group by prefix for better reporting
                     prefixes = {}
@@ -109,7 +105,7 @@ def prepare_checkpoint(checkpoint_path, base_model_path, output_suffix="_hf", co
                     final_weights.update(missing_weights)
                     print(f"  ✅ Merged weights: {len(checkpoint_weights):,} + {len(missing_weights):,} = {len(final_weights):,}")
                 else:
-                    print(f"  ℹ️  No missing generation weights found - checkpoint appears complete")
+                    print(f"  ℹ️  No missing weights found - checkpoint appears complete")
             else:
                 print(f"  ⚠️  Original BAGEL ema.safetensors not found at {original_ema}")
                 print(f"  📋 Proceeding with checkpoint weights only")
@@ -163,7 +159,7 @@ def main():
     parser.add_argument('--no_bf16_conversion', action='store_true',
                        help='Skip converting weights to bfloat16')
     parser.add_argument('--no_merge_weights', action='store_true',
-                       help='Skip merging missing generation weights from original BAGEL')
+                       help='Skip merging missing weights from original BAGEL')
     
     args = parser.parse_args()
     
