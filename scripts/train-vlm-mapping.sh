@@ -14,12 +14,11 @@ conda activate bagel
 ########################################################
 export DATASET_CONFIG="$MAIN_DIR/data/configs/visual_jigsaw_mapping.yaml"
 # export MODEL_PATH="$MAIN_DIR/models/BAGEL-7B-MoT"
-export MODEL_PATH="$MAIN_DIR/results/bagel-vlm-visualjigsaw-position-1p6M-sft-maxnumtokens10240-v2/checkpoints/0005000_hf"
+# export MODEL_PATH="$MAIN_DIR/results/bagel-vlm-visualjigsaw-position-1p6M-sft-maxnumtokens10240-v2/checkpoints/0005000_hf"
+export MODEL_PATH="$MAIN_DIR/results/bagel-visual-jigsaw-generation-sft-160k-v1/checkpoints/0014000_hf"
 
 # export EXPERIMENT_NAME="bagel-vlm-visual-jigsaw-mapping-160k-sft-v1"
-export EXPERIMENT_NAME="bagel-vlm-visual-jigsaw-mapping-160k-sft-position5kstart-v1"
-
- 
+export EXPERIMENT_NAME="bagel-vlm-visual-jigsaw-mapping-160k-sft-generation14kstart-v1"
 
 ########################################################
 # set the variables
