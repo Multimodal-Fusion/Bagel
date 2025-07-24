@@ -15,7 +15,7 @@ conda activate bagel
 ########################################################
 export DATASET_CONFIG="$MAIN_DIR/data/configs/visual-jigsaw-generation.yaml"
 export MODEL_PATH="$MAIN_DIR/models/BAGEL-7B-MoT"
-export EXPERIMENT_NAME="bagel-visual-jigsaw-generation-sft-160k-v2"
+export EXPERIMENT_NAME="bagel-visual-jigsaw-generation-sft-160k-v3"
 
 ########################################################
 # set the variables
@@ -74,9 +74,9 @@ torchrun \
   --log_every 1 \
   --lr 2e-5 \
   --num_worker 1 \
-  --expected_num_tokens 8192 \
-  --max_num_tokens 8592 \
-  --max_num_tokens_per_sample 8192 \
+  --expected_num_tokens 10240 \
+  --max_num_tokens 11520 \
+  --max_num_tokens_per_sample 10240 \
   --wandb_project "bagel" \
   --wandb_name $EXPERIMENT_NAME \
   --checkpoint_dir "results/$EXPERIMENT_NAME/checkpoints" \
@@ -84,6 +84,6 @@ torchrun \
   --wandb_runid "0" \
   --text_cond_dropout_prob 0.0 \
   --vit_cond_dropout_prob 0.0 \
-  --save_every 500
+  --save_every 10
 
 echo "🎉 Training completed!"
