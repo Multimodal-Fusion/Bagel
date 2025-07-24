@@ -15,7 +15,7 @@ conda activate bagel
 ########################################################
 export DATASET_CONFIG="$MAIN_DIR/data/configs/visual-jigsaw-generation.yaml"
 export MODEL_PATH="$MAIN_DIR/models/BAGEL-7B-MoT"
-export EXPERIMENT_NAME="bagel-visual-jigsaw-generation-sft-160k-v3"
+export EXPERIMENT_NAME="bagel-visual-jigsaw-generation-sft-160k-v1"
 
 ########################################################
 # set the variables
