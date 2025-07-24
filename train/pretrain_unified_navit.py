@@ -36,7 +36,14 @@ from train.fsdp_utils import (
     fsdp_ema_setup, fsdp_ema_update,
 )
 
-
+########################################################
+# 1. Model Arguments
+# 2. Data Arguments
+# 3. Training Arguments
+# 4. Main Function
+########################################################
+# Model Arguments
+########################################################
 @dataclass
 class ModelArguments:
     model_path: str = field(
@@ -113,7 +120,9 @@ class ModelArguments:
         metadata={"help": "Probability of dropping ViT visual features during training."}
     )
 
-
+########################################################
+# Data Arguments
+########################################################
 @dataclass
 class DataArguments:
     dataset_config_file: str = field(
@@ -149,7 +158,9 @@ class DataArguments:
         metadata={"help": "Seed used when shuffling / sampling data shards to ensure reproducibility."}
     )
 
-
+########################################################
+# Training Arguments
+########################################################
 @dataclass
 class TrainingArguments:
     # --- modality switches ---
@@ -338,8 +349,13 @@ class TrainingArguments:
         metadata={"help": "Enable FLEX (flash-ext friendly) packing algorithm for sequence data."}
     )
 
-
+########################################################
+# Main Training Function
+########################################################
 def main():
+    ########################################################
+    # 1. Setup, parse arguments, and set up logging
+    ########################################################
     assert torch.cuda.is_available()
     dist.init_process_group("nccl")
     device = dist.get_rank() % torch.cuda.device_count()
@@ -369,7 +385,11 @@ def main():
     logger.info(f'Model arguments {model_args}')
     logger.info(f'Data arguments {data_args}')
 
-    # prepare auto resume logic:
+    ########################################################
+    # 2. Setup model
+    # autoresume, seed, load model
+    ########################################################
+    # 2.1. Prepare auto resume logic
     if training_args.auto_resume:
         resume_from = get_latest_ckpt(training_args.checkpoint_dir)
         print(f"WARNING: resuming from: {resume_from}")
@@ -472,7 +492,11 @@ def main():
         for param in model.vit_model.parameters():
             param.requires_grad = False
 
-    # Setup FSDP and load pretrained model:
+    ########################################################
+    # 3. Setup FSDP and load pretrained model, 
+    # optimizer, scheduler, and train_steps, da
+    # packed dataloader, and prepare models for training
+    ########################################################
     fsdp_config = FSDPConfig(
         sharding_strategy=training_args.sharding_strategy,
         backward_prefetch=training_args.backward_prefetch,
@@ -577,10 +601,13 @@ def main():
     fsdp_model.train()
     ema_model.eval()
 
-    # train loop
+    ########################################################
+    # 4. Train loop
+    ########################################################
     start_time = time()
     logger.info(f"Training for {training_args.total_steps} steps, starting at {train_step}...")
     for curr_step, data in enumerate(train_loader, start=train_step):
+        # 4.1. Data preprocess and forward pass
         data = data.cuda(device).to_dict()
         data_indexes = data.pop('batch_data_indexes', None)
         ce_loss_weights = data.pop('ce_loss_weights', None)
@@ -588,8 +615,9 @@ def main():
             if training_args.visual_gen:
                 with torch.no_grad():
                     data['padded_latent'] = vae_model.encode(data.pop('padded_images'))
-            loss_dict = fsdp_model(**data)
+            loss_dict = fsdp_model(**data) # forward pass
 
+        # 4.2. Compute loss from loss_dict (computed above)
         loss = 0
         ce = loss_dict["ce"]
         if ce is not None:
@@ -621,6 +649,7 @@ def main():
             loss_dict["mse"] = torch.tensor(0, device=device)
             total_mse_tokens = torch.tensor(0, device=device)
 
+        # 4.3. Backward pass and update optimizer and scheduler 
         optimizer.zero_grad()
         loss.backward()
         total_norm = fsdp_model.clip_grad_norm_(training_args.max_grad_norm)
@@ -628,7 +657,7 @@ def main():
         scheduler.step()
         fsdp_ema_update(ema_model, fsdp_model, decay=training_args.ema)
 
-        # Log loss values:
+        # 4.4. Logging: log loss values, training speed, and memory usage
         if curr_step % training_args.log_every == 0:
             total_samples = torch.tensor(len(data['sample_lens']), device=device)
             dist.all_reduce(total_samples, op=dist.ReduceOp.SUM)
@@ -673,6 +702,7 @@ def main():
                 data_status[item['dataset_name']] = {}
             data_status[item['dataset_name']][item['worker_id']] = item['data_indexes']
 
+        # 4.5. Save checkpoint
         if curr_step > 0 and curr_step % training_args.save_every == 0:
             if dist.get_rank() == 0:
                 gather_list = [None] * dist.get_world_size()
@@ -692,6 +722,9 @@ def main():
                 data_status=gather_list
             )
 
+    ########################################################
+    # 5. Finish training
+    ########################################################
     logger.info("Done!")
     if dist.get_rank() == 0:
         wandb.finish()
