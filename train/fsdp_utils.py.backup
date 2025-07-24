@@ -3,7 +3,6 @@
 
 import functools
 import os
-import gc
 
 import torch
 import torch.distributed as dist
@@ -16,16 +15,9 @@ from torch.distributed.fsdp import (
     BackwardPrefetch,
     ShardingStrategy,
     FullStateDictConfig,
-    ShardedStateDictConfig,
     StateDictType,
 )
 from torch.distributed.fsdp.wrap import transformer_auto_wrap_policy
-from torch.distributed.checkpoint import (
-    FileSystemWriter,
-    FileSystemReader,
-    save_state_dict,
-    load_state_dict,
-)
 from safetensors.torch import load_file, save_file
 
 from modeling.bagel.modeling_utils import MLPconnector, TimestepEmbedder, PositionEmbedding
@@ -94,14 +86,14 @@ def fsdp_wrapper(original_model, fsdp_config, ignored_modules=[]):
 class FSDPCheckpoint:
     @staticmethod
     def fsdp_save_ckpt(
-        ckpt_dir,
-        train_steps,
-        model,
-        ema_model,
-        optimizer,
-        scheduler,
+        ckpt_dir, 
+        train_steps, 
+        model, 
+        ema_model, 
+        optimizer, 
+        scheduler, 
         data_status,
-        logger,
+        logger, 
         fsdp_config,
     ):
         save_path = os.path.join(ckpt_dir, f"{train_steps:07d}")
@@ -111,25 +103,21 @@ class FSDPCheckpoint:
         if ema_model is not None:
             with FSDP.state_dict_type(
                 ema_model,
-                StateDictType.SHARDED_STATE_DICT,
-                ShardedStateDictConfig(offload_to_cpu=True),
+                StateDictType.FULL_STATE_DICT,
+                FullStateDictConfig(rank0_only=True, offload_to_cpu=True),
             ):
                 ema_state_dict = ema_model.state_dict()
-                ema_writer = FileSystemWriter(os.path.join(save_path, "ema"))
-                save_state_dict(ema_state_dict, ema_writer)
-                del ema_state_dict
-                gc.collect()
-                torch.cuda.empty_cache()
+                if dist.get_rank() == 0:
+                    save_file(ema_state_dict, os.path.join(save_path, "ema.safetensors"))
 
         with FSDP.state_dict_type(
-            model, StateDictType.SHARDED_STATE_DICT, ShardedStateDictConfig(offload_to_cpu=True)
+            model,
+            StateDictType.FULL_STATE_DICT,
+            FullStateDictConfig(rank0_only=True, offload_to_cpu=True),
         ):
             model_state_dict = model.state_dict()
-            model_writer = FileSystemWriter(os.path.join(save_path, "model"))
-            save_state_dict(model_state_dict, model_writer)
-            del model_state_dict
-            gc.collect()
-            torch.cuda.empty_cache()
+            if dist.get_rank() == 0:
+                save_file(model_state_dict, os.path.join(save_path, "model.safetensors"))
 
         with FSDP.state_dict_type(model, StateDictType.LOCAL_STATE_DICT):
             if fsdp_config.sharding_strategy == "FULL_SHARD":
@@ -155,14 +143,8 @@ class FSDPCheckpoint:
         if dist.get_rank() == 0 and scheduler is not None:
             torch.save(scheduler.state_dict(), os.path.join(save_path, "scheduler.pt"))
 
-        if data_status is not None:
-            os.makedirs(os.path.join(save_path, "data_status"), exist_ok=True)
-            torch.save(
-                data_status, os.path.join(save_path, "data_status", f"rank{dist.get_rank()}.pt")
-            )
-            del data_status
-            gc.collect()
-            torch.cuda.empty_cache()
+        if dist.get_rank() == 0 and data_status is not None:
+            torch.save(data_status, os.path.join(save_path, "data_status.pt"))
 
         dist.barrier()
         return
@@ -172,59 +154,37 @@ class FSDPCheckpoint:
         if resume_from is not None and os.path.exists(resume_from):
             logger.info(f"Loading checkpoint from {resume_from}.")
             if resume_from_ema:
-                model_load_dir = os.path.join(resume_from, "ema")
+                model_state_dict_path = os.path.join(resume_from, f"ema.safetensors")
             else:
-                model_load_dir = os.path.join(resume_from, "model")
+                model_state_dict_path = os.path.join(resume_from, f"model.safetensors")
+            model_state_dict = load_file(model_state_dict_path, device="cpu")
+            # NOTE position embeds are fixed sinusoidal embeddings, so we can just pop it off,
+            # which makes it easier to adapt to different resolutions.
+            if 'latent_pos_embed.pos_embed' in model_state_dict:
+                model_state_dict.pop('latent_pos_embed.pos_embed')
+            if 'vit_pos_embed.pos_embed' in model_state_dict:
+                model_state_dict.pop('vit_pos_embed.pos_embed')
+            msg = model.load_state_dict(model_state_dict, strict=False)
+            logger.info(msg)
+            del model_state_dict
 
-            # Check if this is a sharded FSDP checkpoint by looking for model/ directory
-            if os.path.exists(model_load_dir):
-                logger.info(f"Found sharded FSDP checkpoint, loading from {model_load_dir}")
-                assert isinstance(model, FSDP)
-                with FSDP.state_dict_type(
-                    model,
-                    StateDictType.SHARDED_STATE_DICT,
-                    ShardedStateDictConfig(offload_to_cpu=True),
-                ):
-                    model_state_dict = model.state_dict()
-                    model_reader = FileSystemReader(model_load_dir)
-                    load_state_dict(model_state_dict, model_reader)
-                    for key in ["latent_pos_embed.pos_embed", "vit_pos_embed.pos_embed"]:
-                        if key in model_state_dict:
-                            model_state_dict.pop(key)
-                    msg = model.load_state_dict(model_state_dict, strict=False)
-                    logger.info(msg)
-                    del model_state_dict
-                    gc.collect()
-                    torch.cuda.empty_cache()
-
-                if ema_model is not None:
-                    ema_load_dir = os.path.join(resume_from, "ema")
-                    if os.path.exists(ema_load_dir):
-                        logger.info(f"Loading EMA model from {ema_load_dir}")
-                        assert isinstance(ema_model, FSDP)
-                        with FSDP.state_dict_type(
-                            ema_model,
-                            StateDictType.SHARDED_STATE_DICT,
-                            ShardedStateDictConfig(offload_to_cpu=True),
-                        ):
-                            ema_state_dict = ema_model.state_dict()
-                            ema_reader = FileSystemReader(ema_load_dir)
-                            load_state_dict(ema_state_dict, ema_reader)
-                            for key in ["latent_pos_embed.pos_embed", "vit_pos_embed.pos_embed"]:
-                                if key in ema_state_dict:
-                                    ema_state_dict.pop(key)
-                            msg = ema_model.load_state_dict(ema_state_dict, strict=False)
-                            logger.info(msg)
-                            del ema_state_dict
-                            gc.collect()
-                            torch.cuda.empty_cache()
-                    else:
-                        logger.info(f"EMA directory not found at {ema_load_dir}, skipping EMA loading")
-            else:
-                logger.info(f"No sharded checkpoint found at {model_load_dir}, skipping FSDP checkpoint loading")
-                logger.info("This appears to be a pre-trained model directory, not an FSDP training checkpoint")
+            if ema_model is not None:
+                ema_state_dict_path = os.path.join(resume_from, f"ema.safetensors")
+                if not os.path.exists(ema_state_dict_path):
+                    logger.info(f"replicaing ema model from {model_state_dict_path}.")
+                    ema_state_dict_path = model_state_dict_path
+                ema_state_dict = load_file(ema_state_dict_path, device="cpu")
+                # NOTE position embeds are fixed sinusoidal embeddings, so we can just pop it off,
+                # which makes it easier to adapt to different resolutions.
+                if 'latent_pos_embed.pos_embed' in ema_state_dict:
+                    ema_state_dict.pop('latent_pos_embed.pos_embed')
+                if 'vit_pos_embed.pos_embed' in ema_state_dict:
+                    ema_state_dict.pop('vit_pos_embed.pos_embed')
+                msg = ema_model.load_state_dict(ema_state_dict, strict=False)
+                logger.info(msg)
+                del ema_state_dict
         else:
-            logger.info("Training from scratch.")
+            logger.info(f"Training from scratch.")
         return model, ema_model
 
     @staticmethod
@@ -261,22 +221,16 @@ class FSDPCheckpoint:
                 },
             ]
             """
-            # Try new sharded data_status format first
-            data_status_path = os.path.join(resume_from, "data_status", f"rank{dist.get_rank()}.pt")
+            data_status_path = os.path.join(resume_from, "data_status.pt")
             if os.path.exists(data_status_path):
                 data_status = torch.load(data_status_path, weights_only=True, map_location="cpu")
-            else:
-                # Fallback to old single-file format for backward compatibility
-                old_data_status_path = os.path.join(resume_from, "data_status.pt")
-                if os.path.exists(old_data_status_path):
-                    data_status = torch.load(old_data_status_path, weights_only=True, map_location="cpu")
-                    local_rank = dist.get_rank()
-                    if local_rank < len(data_status):
-                        data_status = data_status[local_rank]
-                    else:
-                        data_status = None
+                local_rank = dist.get_rank()
+                if local_rank < len(data_status):
+                    data_status = data_status[local_rank]
                 else:
                     data_status = None
+            else:
+                data_status = None
         else:
             train_steps = 0
             data_status = None

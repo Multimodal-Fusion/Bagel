@@ -224,7 +224,7 @@ class TrainingArguments:
         metadata={"help": "Print / log every N training steps."}
     )
     save_every: int = field(
-        default=500,
+        default=100,
         metadata={"help": "Save a checkpoint every N training steps."}
     )
     total_steps: int = field(
@@ -481,11 +481,15 @@ def main():
         num_shard=training_args.num_shard,
     )
     ema_model = deepcopy(model)
-    model, ema_model = FSDPCheckpoint.try_load_ckpt(
-        resume_from, logger, model, ema_model, resume_from_ema=finetune_from_ema
-    )
+    
+    # Wrap models with FSDP first, then load checkpoint
     ema_model = fsdp_ema_setup(ema_model, fsdp_config)
     fsdp_model = fsdp_wrapper(model, fsdp_config)
+    
+    # Now load checkpoint with FSDP-wrapped models
+    fsdp_model, ema_model = FSDPCheckpoint.try_load_ckpt(
+        resume_from, logger, fsdp_model, ema_model, resume_from_ema=finetune_from_ema
+    )
     apply_activation_checkpointing(
         fsdp_model, 
         checkpoint_wrapper_fn=functools.partial(
