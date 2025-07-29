@@ -67,6 +67,7 @@ torchrun \
   --resume-model-only True \
   --finetune-from-ema True \
   --visual_gen True \
+  --visual_und False \
   --log_every 1 \
   --lr 2e-5 \
   --num_worker 1 \
@@ -77,6 +78,7 @@ torchrun \
   --wandb_name $EXPERIMENT_NAME \
   --checkpoint_dir "results/$EXPERIMENT_NAME/checkpoints" \
   --results_dir "results/$EXPERIMENT_NAME" \
-  --wandb_runid "3x3_generation_v1"
+  --wandb_runid "3x3_generation_v1" \
+  --save_every 1000
 
 echo "Training completed!"

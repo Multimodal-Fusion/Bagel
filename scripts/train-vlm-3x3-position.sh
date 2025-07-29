@@ -77,6 +77,7 @@ torchrun \
   --wandb_name $EXPERIMENT_NAME \
   --checkpoint_dir "results/$EXPERIMENT_NAME/checkpoints" \
   --results_dir "results/$EXPERIMENT_NAME" \
-  --wandb_runid "3x3_position_v1"
+  --wandb_runid "3x3_position_v1" \
+  --save_every 1000
 
 echo "Training completed!"
