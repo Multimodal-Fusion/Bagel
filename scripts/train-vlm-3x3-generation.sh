@@ -79,6 +79,8 @@ torchrun \
   --checkpoint_dir "results/$EXPERIMENT_NAME/checkpoints" \
   --results_dir "results/$EXPERIMENT_NAME" \
   --wandb_runid "3x3_generation_v1" \
+  --text_cond_dropout_prob 0.0 \
+  --vit_cond_dropout_prob 0.0 \
   --save_every 1000
 
 echo "Training completed!"
