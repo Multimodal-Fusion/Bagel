@@ -39,6 +39,12 @@ DATASET_INFO = {
             'num_total_samples': 160000,
             'parquet_info_path': f'{DATA_PATH2}/data/train/visual_jigsaw_generation/parquet_info/visual_jigsaw_generation.json'
         },
+        'visual_jigsaw_3x3_generation': {
+            'data_dir': f'{DATA_PATH2}/src/fusionbench/image/visual_jigsaw_3x3_train/problems/generation_parquet',
+            'num_files': 40,  
+            'num_total_samples': 40000,
+            'parquet_info_path': f'{DATA_PATH2}/src/fusionbench/image/visual_jigsaw_3x3_train/problems/generation_parquet/parquet_info/visual_jigsaw_3x3_generation.json'
+        },
     },
     'vlm_sft': {
         'llava_ov': {
@@ -55,6 +61,16 @@ DATASET_INFO = {
             'data_dir': f'',
             'jsonl_path': f'{DATA_PATH2}/src/fusionbench/image/visual_jigsaw_position_train/problems/visual_jigsaw_mapping_train_bagel_vlm.jsonl',
             'num_total_samples': 160000
+        },
+        'visual_jigsaw_3x3_position': {
+            'data_dir': f'',
+            'jsonl_path': f'{DATA_PATH2}/src/fusionbench/image/visual_jigsaw_3x3_train/problems/visual_jigsaw_3x3_position_train_bagel_vlm.jsonl',
+            'num_total_samples': 360000
+        },
+        'visual_jigsaw_3x3_mapping': {
+            'data_dir': f'',
+            'jsonl_path': f'{DATA_PATH2}/src/fusionbench/image/visual_jigsaw_3x3_train/problems/visual_jigsaw_3x3_mapping_train_bagel_vlm.jsonl',
+            'num_total_samples': 40000
         },
     },
 }
