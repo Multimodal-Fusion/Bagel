@@ -15,7 +15,7 @@ conda activate bagel
 export DATASET_CONFIG="$MAIN_DIR/data/configs/visual_jigsaw_3x3_generation.yaml"
 export MODEL_PATH="$MAIN_DIR/models/BAGEL-7B-MoT"
 
-export EXPERIMENT_NAME="bagel-vlm-visual-jigsaw-3x3-generation-360k-sft-v1"
+export EXPERIMENT_NAME="bagel-vlm-visual-jigsaw-3x3-generation-360k-sft-v3"
 
 ########################################################
 # set the variables
@@ -71,9 +71,9 @@ torchrun \
   --log_every 1 \
   --lr 2e-5 \
   --num_worker 1 \
-  --expected_num_tokens 10240 \
-  --max_num_tokens 11520 \
-  --max_num_tokens_per_sample 10240 \
+  --expected_num_tokens 8192 \
+  --max_num_tokens 8592 \
+  --max_num_tokens_per_sample 8192 \
   --wandb_project "bagel" \
   --wandb_name $EXPERIMENT_NAME \
   --checkpoint_dir "results/$EXPERIMENT_NAME/checkpoints" \
